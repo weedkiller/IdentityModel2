@@ -4,64 +4,90 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 
 namespace IdentityModel.Client
 {
-    public class IntrospectionResponse
+    /// <summary>
+    /// Models an OAuth 2.0 introspection response
+    /// </summary>
+    /// <seealso cref="IdentityModel.Client.Response" />
+    public class IntrospectionResponse : Response
     {
-        public string Raw { get; }
-        public JObject Json { get; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IntrospectionResponse"/> class.
+        /// </summary>
+        /// <param name="raw">The raw response data.</param>
+        public IntrospectionResponse(string raw) : base(raw)
+        {
+            if (!IsError)
+            {
+                var claims = Json.ToClaims(excludeKeys: "scope").ToList();
 
-        public bool IsError { get; }
-        public string Error { get; }
-        public ResponseErrorType ErrorType { get; } = ResponseErrorType.None;
-        public Exception Exception { get; }
-        public HttpStatusCode HttpStatusCode { get; }
+                // due to a bug in identityserver - we need to be able to deal with the scope list both in array as well as space-separated list format
+                var scope = Json.TryGetValue("scope");
 
-        public bool IsActive { get; }
+                // scope element exists
+                if (scope != null)
+                {
+                    // it's an array
+                    if (scope is JArray scopeArray)
+                    {
+                        foreach (var item in scopeArray)
+                        {
+                            claims.Add(new Claim("scope", item.ToString()));
+                        }
+                    }
+                    else
+                    {
+                        // it's a string
+                        var scopeString = scope.ToString();
+
+                        var scopes = scopeString.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var scopeValue in scopes)
+                        {
+                            claims.Add(new Claim("scope", scopeValue));
+                        }
+                    }
+                }
+
+                Claims = claims;
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IntrospectionResponse"/> class.
+        /// </summary>
+        /// <param name="exception">The exception.</param>
+        public IntrospectionResponse(Exception exception) : base(exception)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IntrospectionResponse"/> class.
+        /// </summary>
+        /// <param name="statusCode">The status code.</param>
+        /// <param name="reason">The reason.</param>
+        public IntrospectionResponse(HttpStatusCode statusCode, string reason) : base(statusCode, reason)
+        {
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the token is active.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the token is active; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsActive => Json.TryGetBoolean("active").Value;
+
+        /// <summary>
+        /// Gets the claims.
+        /// </summary>
+        /// <value>
+        /// The claims.
+        /// </value>
         public IEnumerable<Claim> Claims { get; }
-
-        public IntrospectionResponse(string raw)
-        {
-            Raw = raw;
-
-            try
-            {
-                Json = JObject.Parse(raw);
-                IsActive = bool.Parse(Json["active"].ToString());
-                Claims = Json.ToClaims();
-
-                IsError = false;
-                HttpStatusCode = HttpStatusCode.OK;
-            }
-            catch (Exception ex)
-            {
-                IsError = true;
-
-                Error = ex.Message;
-                ErrorType = ResponseErrorType.Exception;
-                Exception = ex;
-            }
-        }
-
-        public IntrospectionResponse(Exception exception)
-        {
-            IsError = true;
-
-            Exception = exception;
-            Error = exception.Message;
-            ErrorType = ResponseErrorType.Exception;
-        }
-
-        public IntrospectionResponse(HttpStatusCode statusCode, string reason)
-        {
-            IsError = true;
-
-            ErrorType = ResponseErrorType.Http;
-            HttpStatusCode = statusCode;
-            Error = reason;
-        }
     }
 }

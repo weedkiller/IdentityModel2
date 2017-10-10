@@ -39,9 +39,9 @@ namespace IdentityModel.UnitTests
         [InlineData("https:something_weird_https://something_other")]
         public void malformed_authority_url_should_throw(string input)
         {
-            Action act = () => new DiscoveryClient(input);
+            Action act = () => DiscoveryClient.ParseUrl(input);
 
-            act.ShouldThrow<InvalidOperationException>().Where(e => e.Message.Equals("Malformed authority URL"));
+            act.ShouldThrow<InvalidOperationException>().Where(e => e.Message.Equals("Malformed URL"));
         }
 
         [Theory]
@@ -51,10 +51,16 @@ namespace IdentityModel.UnitTests
         [InlineData("https://server:123")]
         public void various_urls_should_normalize(string input)
         {
-            var client = new DiscoveryClient(input);
+            var result = DiscoveryClient.ParseUrl(input);
 
-            client.Url.Should().Be("https://server:123/.well-known/openid-configuration");
-            client.Authority.Should().Be("https://server:123");
+            // test parse URL logic
+            result.discoveryEndpoint.Should().Be("https://server:123/.well-known/openid-configuration");
+            result.authority.Should().Be("https://server:123");
+
+            // make sure parse URL results are used correctly
+            var client = new DiscoveryClient(input);
+            client.Url.Should().Be(result.discoveryEndpoint);
+            client.Authority.Should().Be(result.authority);
         }
 
         [Fact]
@@ -70,6 +76,25 @@ namespace IdentityModel.UnitTests
             disco.Error.Should().StartWith("Error connecting to");
             disco.Error.Should().EndWith("not found");
             disco.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Policy_authority_does_not_get_overwritten()
+        {
+            var policy = new DiscoveryPolicy
+            {
+                Authority = "https://server:123"
+            };
+
+            var client = new DiscoveryClient(_endpoint, _successHandler)
+            {
+                Policy = policy
+            };
+
+            var disco = await client.GetAsync();
+
+            disco.IsError.Should().BeTrue();
+            policy.Authority.Should().Be("https://server:123");
         }
 
         [Fact]

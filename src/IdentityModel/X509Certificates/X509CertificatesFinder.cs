@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
+#pragma warning disable 1591
+
 namespace IdentityModel
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -24,7 +26,7 @@ namespace IdentityModel
 
         public IEnumerable<X509Certificate2> Find(object findValue, bool validOnly = true)
         {
-#if NET45
+#if NET452
             var store = new X509Store(_name, _location);
             store.Open(OpenFlags.ReadOnly);
 

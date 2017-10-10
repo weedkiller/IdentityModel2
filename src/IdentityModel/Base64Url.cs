@@ -5,11 +5,19 @@ using System;
 
 namespace IdentityModel
 {
+    /// <summary>
+    /// Base64Url encoder/decoder
+    /// </summary>
     public static class Base64Url
     {
+        /// <summary>
+        /// Encodes the specified byte array.
+        /// </summary>
+        /// <param name="arg">The argument.</param>
+        /// <returns></returns>
         public static string Encode(byte[] arg)
         {
-            string s = Convert.ToBase64String(arg); // Standard base64 encoder
+            var s = Convert.ToBase64String(arg); // Standard base64 encoder
             
             s = s.Split('=')[0]; // Remove any trailing '='s
             s = s.Replace('+', '-'); // 62nd char of encoding
@@ -18,9 +26,15 @@ namespace IdentityModel
             return s;
         }
 
+        /// <summary>
+        /// Decodes the specified string.
+        /// </summary>
+        /// <param name="arg">The argument.</param>
+        /// <returns></returns>
+        /// <exception cref="System.Exception">Illegal base64url string!</exception>
         public static byte[] Decode(string arg)
         {
-            string s = arg;
+            var s = arg;
             s = s.Replace('-', '+'); // 62nd char of encoding
             s = s.Replace('_', '/'); // 63rd char of encoding
             

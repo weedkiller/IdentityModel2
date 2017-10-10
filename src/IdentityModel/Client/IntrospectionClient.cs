@@ -9,14 +9,25 @@ using System.Threading.Tasks;
 
 namespace IdentityModel.Client
 {
+    /// <summary>
+    /// Client for the OAuth 2.0 introspection endpoint
+    /// </summary>
     public class IntrospectionClient
     {
         private readonly HttpClient _client;
         private readonly string _clientId;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IntrospectionClient"/> class.
+        /// </summary>
+        /// <param name="endpoint">The endpoint.</param>
+        /// <param name="clientId">The client identifier.</param>
+        /// <param name="clientSecret">The client secret.</param>
+        /// <param name="innerHttpMessageHandler">The inner HTTP message handler.</param>
+        /// <exception cref="System.ArgumentNullException">endpoint</exception>
         public IntrospectionClient(string endpoint, string clientId = "", string clientSecret = "", HttpMessageHandler innerHttpMessageHandler = null)
         {
-            if (string.IsNullOrWhiteSpace(endpoint)) throw new ArgumentNullException("endpoint");
+            if (string.IsNullOrWhiteSpace(endpoint)) throw new ArgumentNullException(nameof(endpoint));
             if (innerHttpMessageHandler == null) innerHttpMessageHandler = new HttpClientHandler();
 
             _client = new HttpClient(innerHttpMessageHandler)
@@ -38,6 +49,12 @@ namespace IdentityModel.Client
             }
         }
 
+        /// <summary>
+        /// Sets the timeout.
+        /// </summary>
+        /// <value>
+        /// The timeout.
+        /// </value>
         public TimeSpan Timeout
         {
             set
@@ -46,12 +63,31 @@ namespace IdentityModel.Client
             }
         }
 
+        /// <summary>
+        /// Sends the introspection request.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns></returns>
+        /// <exception cref="System.ArgumentNullException">
+        /// request
+        /// or
+        /// Token
+        /// </exception>
         public async Task<IntrospectionResponse> SendAsync(IntrospectionRequest request)
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
             if (string.IsNullOrWhiteSpace(request.Token)) throw new ArgumentNullException(nameof(request.Token));
 
-            var form = new Dictionary<string, string>();
+            IDictionary<string, string> form;
+            if (request.Parameters == null)
+            {
+                form = new Dictionary<string, string>();
+            }
+            else
+            {
+                form = request.Parameters;
+            }
+
             form.Add("token", request.Token);
 
             if (!string.IsNullOrWhiteSpace(request.TokenTypeHint))

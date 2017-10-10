@@ -3,6 +3,9 @@
 
 namespace IdentityModel
 {
+    /// <summary>
+    /// Commonly used claim types
+    /// </summary>
     public static class JwtClaimTypes
     {
         /// <summary>Unique Identifier for the End-User at the Issuer.</summary>
@@ -120,16 +123,38 @@ namespace IdentityModel
         /// <summary>JWT ID. A unique identifier for the token, which can be used to prevent reuse of the token. These tokens MUST only be used once, unless conditions for reuse were negotiated between the parties; any such negotiation is beyond the scope of this specification.</summary>
         public const string JwtId = "jti";
 
+        /// <summary>Defines a set of event statements that each may add additional claims to fully describe a single logical event that has occurred.</summary>
+        public const string Events = "events";
+
         /// <summary>OAuth 2.0 Client Identifier valid at the Authorization Server.</summary>
         public const string ClientId = "client_id";
 
         /// <summary>OpenID Connect requests MUST contain the "openid" scope value. If the openid scope value is not present, the behavior is entirely unspecified. Other scope values MAY be present. Scope values used that are not understood by an implementation SHOULD be ignored.</summary>
         public const string Scope = "scope";
 
+        /// <summary>
+        /// an identifier
+        /// </summary>
         public const string Id = "id";
+
+        /// <summary>
+        /// The identity provider
+        /// </summary>
         public const string IdentityProvider = "idp";
+
+        /// <summary>
+        /// The role
+        /// </summary>
         public const string Role = "role";
+
+        /// <summary>
+        /// The reference token identifier
+        /// </summary>
         public const string ReferenceTokenId = "reference_token_id";
+
+        /// <summary>
+        /// The confirmation
+        /// </summary>
         public const string Confirmation = "cnf";
     }
 }

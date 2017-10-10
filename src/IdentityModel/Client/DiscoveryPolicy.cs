@@ -1,13 +1,25 @@
 ﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 
 namespace IdentityModel.Client
 {
+    /// <summary>
+    /// Security policy for retrieving a discovery document
+    /// </summary>
     public class DiscoveryPolicy
     {
-        internal string Authority;
+        /// <summary>
+        /// Gets or sets the Authority on which the policy checks will be based on
+        /// </summary>
+        public string Authority { get; set; }
+
+        /// <summary>
+        /// Method of comparison for issuer and authority names. Defaults to <see cref="StringComparison.Ordinal" />
+        /// </summary>
+        public StringComparison AuthorityNameComparison { get; set; } = StringComparison.Ordinal;
 
         /// <summary>
         /// Specifies if HTTPS is enforced on all endpoints. Defaults to true.
@@ -33,6 +45,16 @@ namespace IdentityModel.Client
         /// Specifies if all endpoints are checked to belong to the authority. Defaults to true.
         /// </summary>
         public bool ValidateEndpoints { get; set; } = true;
+
+        /// <summary>
+        /// Specifies a list of endpoints that should be excluded from validation
+        /// </summary>
+        public ICollection<string> EndpointValidationExcludeList { get; set; } = new HashSet<string>();
+
+        /// <summary>
+        /// Specifies a list of additional base addresses that should be allowed for endpoints
+        /// </summary>
+        public ICollection<string> AdditionalEndpointBaseAddresses { get; set; } = new HashSet<string>();
 
         /// <summary>
         /// Specifies if a key set is required. Defaults to true.
